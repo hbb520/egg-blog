@@ -1,26 +1,23 @@
 # egg-blog
-
-
-
 ## QuickStart
 
 <!-- add docs here for user -->
 
 see [egg docs][egg] for more detail.
 
-### Development
+egg / mysql 开发blog系统
+
+### 相关栈
+node / mysql / egg / sequelizejs / redis
+
+### 本地开发
+
+1.然后找到在config/config.default.js 配置你的数据库环境
 
 ```bash
 $ npm i
 $ npm run dev
-$ open http://localhost:7001/
-```
-
-### Deploy
-
-```bash
-$ npm start
-$ npm stop
+$ open http://localhost:7071/
 ```
 
 ### npm scripts
