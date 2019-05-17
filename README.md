@@ -5,7 +5,7 @@
 
 see [egg docs][egg] for more detail.
 
-egg / mysql 开发blog系统
+egg / mysql /RESTful API 开发blog系统
 
 ### 相关栈
 node / mysql / egg / sequelizejs / redis
