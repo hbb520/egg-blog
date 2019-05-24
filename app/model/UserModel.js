@@ -20,7 +20,7 @@ module.exports = app => {
       allowNull: true,
     },
     password: {
-      type: STRING(50),
+      type: STRING(200),
       allowNull: false,
     },
     avator:{

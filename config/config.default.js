@@ -29,6 +29,17 @@ module.exports = appInfo => {
     username: 'root',
     password: '123456',
     timezone: '+08:00', // 东八时区
+    dialectOptions: {
+      charset: "utf8",
+      collate: "utf8_general_ci",
+      supportBigNumbers: true,
+      bigNumberStrings: true
+    },
+    define: {
+      underscored: true,
+      charset:'utf8mb4'
+    }
+
   };
 
   config.redis = {

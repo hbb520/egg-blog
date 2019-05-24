@@ -169,7 +169,7 @@ class UserService extends Service {
     if (!result) return this.ServerResponse.createByErrorMsg('旧密码错误');
     const [rowCount] = await this.UserModel.update({
       password: md5(passwordNew + salt),
-    }, {where: {username: currentUser.username}, individualHooks: true});
+    }, {where: {id: currentUser.id}, individualHooks: true});
     if (rowCount > 0) return this.ServerResponse.createBySuccessMsg('修改密码成功');
     return this.ServerResponse.createByErrorMsg('更新密码失败');
   }
@@ -181,14 +181,14 @@ class UserService extends Service {
    * @return {Promise.<ServerResponse>}
    */
   async updateUserInfo(userInfo, currentUser) {
-    _.unset(userInfo, 'id');
     _.unset(userInfo, 'username');
+    userInfo.id = currentUser.id
     const [updateCount, [updateRow]] = await this.UserModel.update(userInfo, {
       where: {id: currentUser.id},
       individualHooks: true,
     });
     const user = _.pickBy(updateRow.toJSON(), (value, key) => {
-      return ['id', 'username', 'email', 'phone'].find(item => key === item);
+      return ['id', 'nickname', 'email', 'phone','lives_in_city','introduction','avator','question'].find(item => key === item);
     });
     if (updateCount > 0) return this.ServerResponse.createBySuccessMsgAndData('更新个人信息成功', user);
     return this.ServerResponse.createByError('更新个人信息失败');

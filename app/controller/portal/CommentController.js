@@ -17,7 +17,7 @@ class PostController extends Controller {
   // 添加评论
   async saveOrUpdate() {
     const product = this.resquest.body;
-    const response = await this.CommentService.saveOrUpdateProduct(product);
+    const response = await this.CommentService.saveOrUpdate(product);
     this.ctx.body = response;
   }
 
