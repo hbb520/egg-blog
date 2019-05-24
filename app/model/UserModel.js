@@ -47,12 +47,12 @@ module.exports = app => {
     question: {
       type: STRING(100),
       allowNull: true,
-      defaultValue: "1",
+      defaultValue: "我是谁",
     },
     answer: {
       type: STRING(100),
       allowNull: true,
-      defaultValue: "1",
+      defaultValue: "我就是我",
     },
     role: {
       type: INTEGER(4),
