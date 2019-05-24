@@ -1,7 +1,7 @@
 const Service = require('egg').Service;
 const _ = require('lodash');
 
-class PostService extends Service {
+module.exports = app => class PostService extends Service {
   constructor(ctx) {
     super(ctx);
     this.session = ctx.session;
@@ -9,14 +9,16 @@ class PostService extends Service {
     this.CategoryModel = ctx.model.CategoryModel;
     this.ResponseCode = ctx.response.ResponseCode;
     this.ServerResponse = ctx.response.ServerResponse;
+    this.CategoryModel.hasOne(this.PostModel, {foreignKey: 'id'});
+    this.PostModel.belongsTo(this.CategoryModel, {foreignKey: 'categoryId'});
   }
 
   /**
-   * @feature 增加或更新产品
-   * @param product {Object} -id 有id 更新，没id 增加
+   * @feature 增加或更新文章
+   * @param
    * @return {Promise.<*>}
    */
-  async saveOrUpdateProduct(product) {
+  async saveOrUpdate(product) {
     if (!product) return this.ServerResponse.createByErrorMsg('新增或更新参数不正确');
     const {id: uid, avator: avator, nickname: nickname} = this.session.currentUser;
     product.uid = uid;
@@ -44,50 +46,83 @@ class PostService extends Service {
   }
 
   /**
-   * @feature 修改产品销售状态
-   * @param id {Number} 产品id
-   * @param status {Number} 产品销售状态
+   * @feature 管理员修改文章状态
+   * @param id {Number} 文章id
+   * @param status {Number} 文章状态
    * @return {Promise.<*>}
    */
   async setSaleStatus(id, status) {
     if (!id || !status) return this.ServerResponse.createByErrorCodeMsg(this.ResponseCode.ILLEGAL_ARGUMENT, 'ILLEGAL_ARGUMENT');
     const [updateCount, [updateRow]] = await this.PostModel.update({status}, {where: {id}, individualHooks: true});
-    if (updateCount < 1) return this.ServerResponse.createByErrorMsg('修改产品销售状态失败');
-    return this.ServerResponse.createBySuccessMsgAndData('修改产品销售状态成功', updateRow.toJSON());
+    if (updateCount < 1) return this.ServerResponse.createByErrorMsg('修改状态失败');
+    return this.ServerResponse.createBySuccessMsgAndData('修改状态成功', updateRow.toJSON());
   }
 
   /**
-   * @feature 获取商品详情
-   * @param id {Number} 商品id
+   * @feature 管理员修改文章是否推荐
+   * @param id {Number} 文章id
+   * @param is_recommend {Number} 文章是否被推荐 0-否   1-已推荐
+   * @return {Promise.<*>}
+   */
+  async setIsRecommend(id, is_recommend) {
+    if (!id || !is_recommend) return this.ServerResponse.createByErrorCodeMsg(this.ResponseCode.ILLEGAL_ARGUMENT, 'ILLEGAL_ARGUMENT');
+    const [updateCount, [updateRow]] = await this.PostModel.update({is_recommend}, {
+      where: {id},
+      individualHooks: true
+    });
+    if (updateCount < 1) return this.ServerResponse.createByErrorMsg('修改推荐状态失败');
+    return this.ServerResponse.createBySuccessMsgAndData('修改推荐状态成功', updateRow.toJSON());
+  }
+
+  /**
+   * @feature 获取文章详情
+   * @param id {Number} 文章id
    * @return {Promise.<*>}
    */
   async getDetail(id) {
     if (!id) return this.ServerResponse.createByErrorCodeMsg(this.ResponseCode.ILLEGAL_ARGUMENT, 'ILLEGAL_ARGUMENT');
     const productRow = await this.PostModel.findOne({
-      // attributes: { exclude: ['createTime', 'updateTime'] },
       where: {id},
-      // include: [
-      //   { model: this.CategoryModel, as: 'categoryId', attributes: ['name'] }
-      // ]
+      include: [
+        {model: this.CategoryModel, attributes: ['name', 'id', 'parentId']}
+      ]
     });
-    if (!productRow) this.ServerResponse.createByErrorMsg('产品已下架或删除');
+    if (!productRow) this.ServerResponse.createByErrorMsg('文章已下架或删除');
+
+    const page_view = productRow.toJSON().page_view + 1;
+    await this.PostModel.update({page_view}, {where: {id}, individualHooks: true});
+
     return this.ServerResponse.createBySuccessData(productRow.toJSON());
   }
 
   /**
-   * @feature 产品列表获取
+   * @feature 文章列表获取
    * @param pageNum {Number} 页数
    * @param pageSize {Number} limit
    * @return {Promise.<*>}
    */
-  async getList({pageNum = 1, pageSize = 10}) {
-    const {count, rows} = await this.PostModel.findAndCount({
-      // attributes: { exclude: ['createTime', 'updateTime'] },
+  async getList({pageNum = 1, pageSize = 10, categoryId = null, is_recommend = null, title = null}) {
+
+    const data = {
       order: [['id', 'ASC']],
       limit: Number(pageSize | 0),
       offset: Number(pageNum - 1 | 0) * Number(pageSize | 0),
-    });
-    if (rows.length < 1) this.ServerResponse.createBySuccessMsg('已无产品数据');
+    };
+    if (categoryId) {
+      data.where = {
+        categoryId
+      };
+    }
+    if (is_recommend) {
+      data.where = {
+        is_recommend
+      };
+    }
+    if (title) {
+      data.where = {title: {$like: `%${title}%`}};
+    }
+    const {count, rows} = await this.PostModel.findAndCount(data);
+    if (rows.length < 1) this.ServerResponse.createBySuccessMsg('已无数据');
     rows.forEach(row => row && row.toJSON());
     return this.ServerResponse.createBySuccessData({
       pageNum,
@@ -99,44 +134,46 @@ class PostService extends Service {
   }
 
   /**
-   * @feature 后台产品搜索
-   * @param pageNum {Number}
-   * @param pageSize {Number}
-   * @param productName {String}
-   * @param productId {Number}
-   * @return {Promise.<void>}
+   * @feature 我的文章列表获取
+   * @param pageNum {Number} 页数
+   * @param pageSize {Number} limit
+   * @return {Promise.<*>}
    */
-  async productSearch({pageNum = 1, pageSize = 10, productName, productId}) {
-    if (productId && !productName) {
-      // TODO 按id 搜索 返回一条产品
-      const product = await this.PostModel.findOne({where: {id: productId}}).then(row => row && row.toJSON());
-      if (!product) return this.ServerResponse.createByErrorMsg('产品id错误');
-      return this.ServerResponse.createBySuccessData({
-        product,
-        host: this.config.oss.client.endpoint,
-      });
-    } else if (productName && !productId) {
-      // TODO 按名称分页搜索 返回产品列表
-      const {count, rows} = await this.PostModel.findAndCount({
-        // attributes: { exclude: ['createTime', 'updateTime'] },
-        where: {name: {$like: `%${productName}%`}},
-        order: [['id', 'ASC']],
-        limit: Number(pageSize | 0),
-        offset: Number(pageNum - 1 | 0) * Number(pageSize | 0),
-      });
-      if (rows.length < 1) this.ServerResponse.createBySuccessMsg('无产品数据');
-      rows.forEach(row => row && row.toJSON());
-      return this.ServerResponse.createBySuccessData({
-        pageNum,
-        pageSize,
-        list: rows,
-        total: count,
-        host: this.config.oss.client.endpoint,
-      });
+  async getMyList({pageNum = 1, pageSize = 10, categoryId = null, is_recommend = null, title = null}) {
+    const {id: uid} = this.session.currentUser;
+    console.log(uid)
+    const data = {
+      order: [['id', 'ASC']],
+      limit: Number(pageSize | 0),
+      where: {uid},
+      offset: Number(pageNum - 1 | 0) * Number(pageSize | 0),
+    };
+
+    if (categoryId) {
+      data.where = {
+        categoryId
+      };
     }
-    return this.ServerResponse.createByErrorCodeMsg(this.ResponseCode.ILLEGAL_ARGUMENT, 'ILLEGAL_ARGUMENT');
+    if (is_recommend) {
+      data.where = {
+        is_recommend
+      };
+    }
+    if (title) {
+      data.where = {title: {$like: `%${title}%`}};
+    }
+    const {count, rows} = await this.PostModel.findAndCount(data);
+    if (rows.length < 1) this.ServerResponse.createBySuccessMsg('已无数据');
+    rows.forEach(row => row && row.toJSON());
+    return this.ServerResponse.createBySuccessData({
+      pageNum,
+      pageSize,
+      list: rows,
+      total: count,
+      host: this.config.oss.client.endpoint,
+    });
   }
 
-}
+};
 
-module.exports = PostService;
+

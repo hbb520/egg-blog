@@ -1,4 +1,5 @@
 module.exports = app => {
-  app.router.post('/manage/user/login', app.controller.backend.manageController.login);
-  app.router.get('/manage/count', app.controller.backend.manageController.count);
+  const subRouter = app.router.namespace('/api');
+  subRouter.post('/manage/user/login', app.controller.backend.manageController.login);
+  subRouter.get('/manage/count', app.controller.backend.manageController.count);
 };

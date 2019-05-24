@@ -23,8 +23,8 @@ module.exports = appInfo => {
 
   config.sequelize = {
     dialect: 'mysql', // support: mysql, mariadb, postgres, mssql
-    database: 'hbb_egg',
-    host: '172.16.100.53',
+    database: 'nodesql',
+    host: '47.99.113.195',
     port: '3306',
     username: 'root',
     password: '123456',
@@ -34,9 +34,9 @@ module.exports = appInfo => {
   config.redis = {
     client: {
       port: 6379, // Redis port
-      host: '172.16.100.69', // Redis host
+      host: '47.99.113.195', // Redis host
       password: '123456',
-      db: 10,
+      db: 0,
     },
     agent: true,
   };
@@ -60,7 +60,7 @@ module.exports = appInfo => {
     client: {
       accessKeyId: 'LTAItynAEvcPJHkE',
       accessKeySecret: '5cZb18s6ZeBxY6K9duVavWL6Aup7T5',
-      bucket: 'egg-commerce',
+      bucket: 'egg-blog',
       endpoint: 'oss-cn-hangzhou.aliyuncs.com',
       timeout: '60s',
     },
@@ -73,13 +73,16 @@ module.exports = appInfo => {
     // ]
   };
 
+  config.alinode = {
+    enable: true,
+    appid: '79783',
+    secret: '4538f408238e00b4384409aa8b5156f5801ef63e'
+  };
   config.cors = {
     origin: 'http://localhost:8080',
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true   // 该属性允许session跨域
   };
-
-
 
 
   return config;

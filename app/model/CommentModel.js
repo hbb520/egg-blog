@@ -3,17 +3,12 @@ const {NO_Recommend} = require('../common/postRecommend');
 
 module.exports = app => {
   const {INTEGER, STRING, DATE, TEXT, DECIMAL, UUID, UUIDV4} = app.Sequelize;
-  const PostModel = app.model.define('post', {
+  const CommentModel = app.model.define('comment', {
       id: {
         type: INTEGER,
         allowNull: false,
         primaryKey: true,
         autoIncrement: true,
-      },
-      // 分类id
-      categoryId: {
-        type: INTEGER,
-        allowNull: false,
       },
       //用户ID
       uid: {
@@ -30,39 +25,14 @@ module.exports = app => {
         type: STRING(50),
         allowNull: false,
       },
-      //标题
-      title: {
-        type: STRING(200),
-        allowNull: true,
+      postId: {
+        type: INTEGER,
+        allowNull: false,
       },
       //内容
       content: {
         type: TEXT,
-        allowNull: true,
-      },
-      //评论数
-      comments: {
-        type: INTEGER(11),
         allowNull: false,
-        defaultValue: 0,
-      },
-      //浏览数
-      page_view: {
-        type: INTEGER(11),
-        allowNull: false,
-        defaultValue: 0,
-      },
-      //是否被推荐
-      is_recommend: {
-        type: INTEGER(6),
-        allowNull: true,
-        defaultValue: NO_Recommend.CODE,
-      },
-      // 状态 1-展示中，2-下架，3-删除
-      status: {
-        type: INTEGER(6),
-        allowNull: true,
-        defaultValue: ON_SALE.CODE,
       },
       createTime: {
         type: DATE,
@@ -77,22 +47,22 @@ module.exports = app => {
     }, {
       timestamps: false,
       freezeTableName: true,
-      tablseName: 'post',
+      tablseName: 'comment',
     },
     {
       classMethods: {
         associate() {
-          PostModel.belongsTo(app.model.CategoryModel, {foreignKey: 'categoryId'});
+          // CommentModel.belongsTo(app.model.CategoryModel, {foreignKey: 'categoryId'});
         },
       },
     }
   );
 
 
-  PostModel.beforeBulkUpdate(post => {
+  CommentModel.beforeBulkUpdate(post => {
     post.attributes.updateTime = new Date();
     return post;
   });
 
-  return PostModel;
+  return CommentModel;
 };

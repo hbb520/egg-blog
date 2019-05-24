@@ -1,5 +1,5 @@
 module.exports = app => {
-  const { INTEGER, STRING, DATE, UUID, UUIDV4 } = app.Sequelize;
+  const {INTEGER, STRING, DATE, UUID, UUIDV4} = app.Sequelize;
 
   const CategoryModel = app.model.define('category', {
     id: {
@@ -40,13 +40,18 @@ module.exports = app => {
       defaultValue: new Date(),
     },
   }, {
+    freezeTableName: true,
     timestamps: false,
     tablseName: 'category',
-  }, {
+  },
+    {
     classMethods: {
-      associate() {},
+      associate() {
+        CategoryModel.hasOne(app.model.PostModel, { foreignKey: 'id' });
+      },
     },
-  });
+  }
+  );
 
   CategoryModel.beforeBulkUpdate(category => {
     category.attributes.updateTime = new Date();

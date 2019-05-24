@@ -25,3 +25,13 @@ exports.cors = {
   enable: true,
   package: 'egg-cors',
 };
+
+exports.routerPlus = {
+  enable: true,
+  package: 'egg-router-plus',
+};
+
+exports.alinode = {
+  enable: true,
+  package: 'egg-alinode',
+};

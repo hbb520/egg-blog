@@ -1,18 +1,12 @@
 module.exports = app => {
-  const checkLogin = app.middleware.checkLogin({ checkAdmin: true });
-
-  app.router.post('/post/saveOrUpdate', checkLogin, app.controller.portal.postController.saveOrUpdateProduct);
-
-  app.router.post('/manage/product/setSaleStatus', checkLogin, app.controller.backend.productManageController.setSaleStatus);
-
-  app.router.put('/manage/product/setSaleStatus', checkLogin, app.controller.backend.productManageController.setSaleStatus);
-
-  app.router.get('/manage/product/detail/:id', checkLogin, app.controller.backend.productManageController.getDetail);
-
-  app.router.get('/post/list', app.controller.portal.postController.getList);
-
-  app.router.get('/manage/product/search', checkLogin, app.controller.backend.productManageController.productSearch);
-
-  app.router.put('/manage/upload', checkLogin, app.controller.backend.productManageController.upload);
-
+  const subRouter = app.router.namespace('/api');
+  const checkLogin = app.middleware.checkLogin({});
+  const checkAdminLogin = app.middleware.checkLogin({ checkAdmin: true });
+  subRouter.post('/post/saveOrUpdate', checkLogin, app.controller.portal.postController.saveOrUpdate);
+  subRouter.get('/post/detail/:id', checkLogin, app.controller.portal.postController.getDetail);
+  subRouter.get('/post/list', app.controller.portal.postController.getList);
+  subRouter.get('/post/myList',checkLogin, app.controller.portal.postController.getMyList);
+  subRouter.put('/upload', checkLogin, app.controller.portal.postController.upload);
+  subRouter.post('/manage/post/setSaleStatus', checkAdminLogin, app.controller.portal.postController.setSaleStatus);
+  subRouter.post('/manage/post/setIsRecommend', checkAdminLogin, app.controller.portal.postController.setIsRecommend);
 };
